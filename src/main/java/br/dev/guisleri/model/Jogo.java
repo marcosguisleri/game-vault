@@ -1,5 +1,8 @@
 package br.dev.guisleri.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Jogo {
 
     private String titulo;
@@ -8,7 +11,14 @@ public class Jogo {
     private int quantHorasJogadas;
     private boolean zerado;
 
-    public Jogo(String titulo, Genero genero, int anoLancamento, int quantHorasJogadas, boolean zerado) {
+    @JsonCreator
+    public Jogo(
+            @JsonProperty("titulo") String titulo,
+            @JsonProperty("genero") Genero genero,
+            @JsonProperty("anoLancamento") int anoLancamento,
+            @JsonProperty("quantHorasJogadas") int quantHorasJogadas,
+            @JsonProperty("zerado") boolean zerado) {
+
         if (titulo == null || titulo.isBlank()) {
             throw new IllegalArgumentException("Título não pode ser vazio.");
         }

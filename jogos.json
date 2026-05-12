@@ -1,0 +1,37 @@
+[ {
+  "titulo" : "God of War",
+  "genero" : "ACAO",
+  "anoLancamento" : 2018,
+  "quantHorasJogadas" : 47,
+  "zerado" : true
+}, {
+  "titulo" : "Hollow Knight",
+  "genero" : "AVENTURA",
+  "anoLancamento" : 2017,
+  "quantHorasJogadas" : 62,
+  "zerado" : true
+}, {
+  "titulo" : "Cyberpunk 2077",
+  "genero" : "RPG",
+  "anoLancamento" : 2020,
+  "quantHorasJogadas" : 205,
+  "zerado" : true
+}, {
+  "titulo" : "Counter-Strike 2",
+  "genero" : "FPS",
+  "anoLancamento" : 2023,
+  "quantHorasJogadas" : 200,
+  "zerado" : false
+}, {
+  "titulo" : "Mortal Kombat 11",
+  "genero" : "LUTA",
+  "anoLancamento" : 2019,
+  "quantHorasJogadas" : 28,
+  "zerado" : true
+}, {
+  "titulo" : "FIFA 25",
+  "genero" : "ESPORTE",
+  "anoLancamento" : 2024,
+  "quantHorasJogadas" : 27,
+  "zerado" : true
+} ]
