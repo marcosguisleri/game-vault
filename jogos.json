@@ -34,4 +34,10 @@
   "anoLancamento" : 2024,
   "quantHorasJogadas" : 27,
   "zerado" : true
+}, {
+  "titulo" : "IRacing Arcade",
+  "genero" : "CORRIDA",
+  "anoLancamento" : 2026,
+  "quantHorasJogadas" : 12,
+  "zerado" : false
 } ]

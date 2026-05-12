@@ -1,5 +1,6 @@
 package br.dev.guisleri.cli;
 
+import br.dev.guisleri.model.Genero;
 import br.dev.guisleri.model.Jogo;
 import br.dev.guisleri.repository.JogoRepository;
 import br.dev.guisleri.service.JogoService;
@@ -29,25 +30,34 @@ public class Main {
 
         exibirCabecalho();
 
-        exibirLista("TODOS OS JOGOS", jogoService.listarJogos());
-        exibirLista("JOGOS DO GÊNERO LUTA", jogoService.listarJogosPorGenero(LUTA));
-        exibirLista("JOGOS LANÇADOS EM 2024", jogoService.listarJogosPorAno(2024));
-        exibirLista("JOGOS COM MAIS DE 100 HORAS", jogoService.listarJogosPorHorasJogadasMais(100));
-        exibirLista("JOGOS COM MENOS DE 100 HORAS", jogoService.listarJogosPorHorasJogadasMenos(100));
-        exibirLista("JOGOS NÃO ZERADOS", jogoService.listarJogosNaoZerados());
-        exibirLista("JOGOS ZERADOS", jogoService.listarJogosZerados());
+        boolean rodando = true;
+        while (rodando) {
+            exibirMenu();
+            int opcao = Integer.parseInt(IO.readln("Escolha uma opção: "));
 
-        exibirJogoPorTitulo("FIFA 25", jogoService.buscarJogoPorTitulo("FIFA 25"));
+            switch (opcao) {
+                case 0 -> rodando = false;
+                case 1 -> exibirLista("JOGOS CADASTRADOS", jogoService.listarJogos());
+                case 2 -> {
+                    Jogo novoJogo = adicionarJogo();
+                    if (novoJogo != null) {
+                        jogoService.adicionarJogo(novoJogo);
+                        IO.println("\nJogo adicionado com sucesso!\n");
+                    }
+                }
+                case 3 -> {
+                    String titulo = IO.readln("Informe o título do jogo: ").trim();
+                    exibirJogoPorTitulo(titulo, jogoService.buscarJogoPorTitulo(titulo));
+                }
+                case 4 -> exibirEstatisticas(jogoService);
+                default -> IO.println("\nOpção inválida. Tente novamente.");
+            }
+        }
 
-        exibirEstatisticas(jogoService);
-
-        exibirLista("JOGOS ORDENADOS POR ANO DE LANÇAMENTO", jogoService.jogosOrdenadosPorAnoLancamento());
-        exibirLista("JOGOS ORDENADOS POR HORAS JOGADAS", jogoService.jogosOrdenadosPorHorasJogadas());
-        exibirLista("JOGOS ORDENADOS POR TÍTULO", jogoService.jogosOrdenadosPorTitulo());
+        jogoRepository.salvarJogo(jogoService.listarJogos());
 
         exibirRodape();
 
-        jogoRepository.salvarJogo(jogoService.listarJogos());
     }
 
     private static void exibirCabecalho() {
@@ -56,6 +66,17 @@ public class Main {
                 ========================================
                          GAME VAULT CLI
                    Biblioteca pessoal de jogos
+                ========================================
+                """);
+    }
+
+    private static void exibirMenu() {
+        IO.println("""
+                1. Listar todos os jogos
+                2. Adicionar novo jogo
+                3. Buscar jogo por título
+                4. Estatísticas
+                0. Sair
                 ========================================
                 """);
     }
@@ -110,11 +131,44 @@ public class Main {
         IO.println("----------------------------------------");
     }
 
+    private static Jogo adicionarJogo() {
+        exibirSecao("ADICIONAR JOGO");
+
+        IO.println("Preencha as informações abaixo para cadastrar um novo jogo.\n");
+
+        String titulo = IO.readln("Título do jogo: ").trim();
+
+        IO.println("""
+            
+            Gêneros disponíveis:
+            ACAO | AVENTURA | RPG | FPS | LUTA | ESPORTE | CORRIDA | ESTRATEGIA | TERROR | PLATAFORMA | SIMULACAO | PUZZLE
+            """);
+
+        String generoString = IO.readln("Gênero do jogo: ").trim().toUpperCase();
+
+        int ano = Integer.parseInt(IO.readln("Ano de lançamento: ").trim());
+
+        int quantHoras = Integer.parseInt(IO.readln("Quantidade de horas jogadas: ").trim());
+
+        String zerou = IO.readln("Já zerou o jogo? [S/N]: ").trim();
+
+        Genero genero;
+        try {
+            genero = Genero.valueOf(generoString);
+        } catch (IllegalArgumentException e) {
+            IO.println("\nGênero inválido. Tente novamente.\n");
+            return null;
+        }
+        boolean zerado = zerou.equalsIgnoreCase("S");
+
+        return new Jogo(titulo, genero, ano, quantHoras, zerado);
+    }
+
     private static void exibirRodape() {
         IO.println("""
                 
                 ========================================
-                   Fim da execução do Game Vault CLI
+                         Dados salvos. Até mais!
                 ========================================
                 """);
     }
