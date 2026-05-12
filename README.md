@@ -17,8 +17,8 @@ O GameVault permite gerenciar uma coleção de jogos via terminal, registrando i
 - 🔍 Buscar jogo por título
 - 📊 Estatísticas da biblioteca (total de jogos, horas jogadas, jogo mais jogado)
 - 💾 Persistência automática em arquivo JSON
-- 🔃 Ordenação por título, ano e horas jogadas
 - 🎯 Filtros por gênero, ano, status e quantidade de horas
+- 🔃 Ordenação por título, ano e horas jogadas
 
 ---
 
@@ -43,7 +43,7 @@ src/main/java/br/dev/guisleri/
 
 - Java 25
 - Maven
-- Jackson Databind 2.18.3
+- Jackson Databind 2.21.2
 
 ---
 
@@ -91,7 +91,7 @@ Na primeira execução, o sistema carrega uma coleção inicial de jogos e gera 
 - [x] Estatísticas da coleção
 - [x] Persistência em arquivo JSON com Jackson
 - [x] Menu interativo CLI
-- [ ] Filtros e ordenações no menu (submenus)
+- [x] Filtros e ordenações no menu (submenus)
 - [ ] Banco de dados com JPA
 - [ ] API REST com Quarkus
 - [ ] Interface web
