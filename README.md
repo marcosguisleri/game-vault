@@ -1,80 +1,122 @@
-# game-vault
+# 🎮 GameVault
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+Sistema de gerenciamento de biblioteca de jogos pessoal, evoluído de uma aplicação CLI com persistência em JSON para uma API REST com banco de dados relacional.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+---
 
-## Running the application in dev mode
+## 📋 Sobre o projeto
 
-You can run your application in dev mode that enables live coding using:
+O GameVault permite gerenciar uma coleção de jogos registrando informações como gênero, ano de lançamento, horas jogadas e status de conclusão. Nesta fase, o projeto foi migrado de uma aplicação CLI orientada a objetos para uma API REST construída com Quarkus e PostgreSQL.
 
-```shell script
+> A versão CLI original está preservada na branch `master`.
+
+---
+
+## 🚀 Funcionalidades
+
+- ➕ Cadastrar novos jogos
+- 📋 Listar todos os jogos da coleção
+- 🔍 Buscar jogo por título
+- 🎯 Filtros por gênero, status de conclusão e ano
+- 🔃 Ordenação por título, ano e horas jogadas
+- 📖 Documentação interativa via Swagger UI
+
+---
+
+## 🏗️ Estrutura do projeto
+
+```
+src/main/java/br/dev/guisleri/
+├── model/
+│   ├── Jogo.java               # Entidade JPA com Panache
+│   └── Genero.java             # Enum com 12 gêneros disponíveis
+├── resource/
+│   └── JogoResource.java       # Endpoints REST
+└── service/
+    └── JogoService.java        # Regras de negócio
+```
+
+---
+
+## 🧰 Tecnologias
+
+- Java 25
+- Quarkus 3
+- Hibernate ORM with Panache
+- PostgreSQL
+- RESTEasy Reactive + Jackson
+- Hibernate Validator
+- SmallRye OpenAPI (Swagger UI)
+- Docker
+
+---
+
+## ▶️ Como executar
+
+**Pré-requisitos:** Java 25+, Maven e Docker instalados.
+
+```bash
+# Clone o repositório
+git clone https://github.com/marcosguisleri/game-vault.git
+cd game-vault
+
+# Mude para a branch Quarkus
+git checkout feature/quarkus
+
+# Suba o banco de dados
+docker run --name gamevault-db \
+  -e POSTGRES_USER=gamevault \
+  -e POSTGRES_PASSWORD=gamevault \
+  -e POSTGRES_DB=gamevault \
+  -p 5432:5432 \
+  -d postgres:15
+
+# Inicie a aplicação em modo dev
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+A aplicação estará disponível em `http://localhost:8080`.
 
-## Packaging and running the application
+O Swagger UI estará disponível em `http://localhost:8080/q/swagger-ui`.
 
-The application can be packaged using:
+---
 
-```shell script
-./mvnw package
-```
+## 📚 Conceitos aplicados
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+**Fase 1 — CLI com OOP** (`master`)
+- Orientação a Objetos (encapsulamento, abstração)
+- Enum para domínio fechado de valores
+- Streams, lambdas e method references
+- `Optional` para buscas sem resultado garantido
+- `Comparator` para ordenações flexíveis
+- Serialização JSON com Jackson
+- Separação de responsabilidades (Model / Service / Repository / CLI)
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+**Fase 2 — API REST com Quarkus** (`feature/quarkus`)
+- JPA com Hibernate ORM e padrão Active Record (Panache)
+- Injeção de dependência com CDI (`@ApplicationScoped`, `@Inject`)
+- Controle de transações com `@Transactional`
+- API REST com JAX-RS
+- Validações declarativas com Bean Validation
+- Documentação automática com OpenAPI/Swagger
 
-If you want to build an _über-jar_, execute the following command:
+---
 
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
+## 🗺️ Roadmap
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+- [x] CRUD básico em memória com OOP
+- [x] Ordenação por horas, título e ano com `Comparator`
+- [x] Estatísticas da coleção
+- [x] Persistência em arquivo JSON com Jackson
+- [x] Menu interativo CLI
+- [x] Filtros e ordenações no menu (submenus)
+- [x] Banco de dados com JPA + PostgreSQL
+- [x] API REST com Quarkus
+- [ ] Interface web
 
-## Creating a native executable
+---
 
-You can create a native executable using:
+## 👨‍💻 Autor
 
-```shell script
-./mvnw package -Dnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/game-vault-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Related Guides
-
-- Hibernate Validator ([guide](https://quarkus.io/guides/validation)): Bean validation using Hibernate Validator and Jakarta Validation annotations
-- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Generate OpenAPI schemas and serve Swagger UI for REST API documentation
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
-- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplified JPA/Hibernate data access layer with active record and repository patterns
-- JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
-
-## Provided Code
-
-### Hibernate ORM
-
-Create your first JPA entity
-
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
-
-
-[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
-
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+Desenvolvido por **Marcos Guisleri**  
+[![GitHub](https://img.shields.io/badge/GitHub-marcosguisleri-181717?style=flat&logo=github)](https://github.com/marcosguisleri)
