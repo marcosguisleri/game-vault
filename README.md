@@ -1,104 +1,80 @@
-# 🎮 GameVault
+# game-vault
 
-Sistema de gerenciamento de biblioteca de jogos pessoal desenvolvido em Java, com foco em boas práticas de Orientação a Objetos.
+This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
----
+If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
 
-## 📋 Sobre o projeto
+## Running the application in dev mode
 
-O GameVault permite gerenciar uma coleção de jogos via terminal, registrando informações como gênero, ano de lançamento, horas jogadas e status de conclusão. Os dados são persistidos em arquivo JSON e carregados automaticamente a cada execução.
+You can run your application in dev mode that enables live coding using:
 
----
-
-## 🚀 Funcionalidades
-
-- ➕ Cadastrar novos jogos
-- 📋 Listar todos os jogos da coleção
-- 🔍 Buscar jogo por título
-- 📊 Estatísticas da biblioteca (total de jogos, horas jogadas, jogo mais jogado)
-- 💾 Persistência automática em arquivo JSON
-- 🎯 Filtros por gênero, ano, status e quantidade de horas
-- 🔃 Ordenação por título, ano e horas jogadas
-
----
-
-## 🏗️ Estrutura do projeto
-
-```
-src/main/java/br/dev/guisleri/
-├── cli/
-│   └── Main.java               # Menu interativo e ponto de entrada
-├── model/
-│   ├── Jogo.java               # Entidade principal com validações
-│   └── Genero.java             # Enum com 12 gêneros disponíveis
-├── repository/
-│   └── JogoRepository.java     # Leitura e escrita em JSON via Jackson
-└── service/
-    └── JogoService.java        # Regras de negócio e gerenciamento da coleção
+```shell script
+./mvnw quarkus:dev
 ```
 
----
+> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
 
-## 🧰 Tecnologias
+## Packaging and running the application
 
-- Java 25
-- Maven
-- Jackson Databind 2.21.2
+The application can be packaged using:
 
----
-
-## ▶️ Como executar
-
-**Pré-requisitos:** Java 25+ e Maven instalados.
-
-```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/game-vault.git
-
-# Entre na pasta do projeto
-cd game-vault
-
-# Compile
-mvn compile
-
-# Execute
-mvn exec:java
+```shell script
+./mvnw package
 ```
 
-Na primeira execução, o sistema carrega uma coleção inicial de jogos e gera o arquivo `jogos.json` automaticamente na raiz do projeto.
+It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
+Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
 
----
+The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
 
-## 📚 Conceitos aplicados
+If you want to build an _über-jar_, execute the following command:
 
-- Orientação a Objetos (encapsulamento, abstração)
-- Enum para domínio fechado de valores
-- Validações no construtor com `IllegalArgumentException`
-- Streams, lambdas e method references
-- `Optional` para buscas que podem não retornar resultado
-- `Comparator` para ordenações flexíveis
-- Imutabilidade com `Collections.unmodifiableList`
-- Serialização e desserialização JSON com Jackson (`@JsonCreator`, `@JsonProperty`)
-- Separação de responsabilidades (Model / Service / Repository / CLI)
-- Padrão seed para dados iniciais
+```shell script
+./mvnw package -Dquarkus.package.jar.type=uber-jar
+```
 
----
+The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
 
-## 🗺️ Roadmap
+## Creating a native executable
 
-- [x] CRUD básico em memória com OOP
-- [x] Ordenação por horas, título e ano com `Comparator`
-- [x] Estatísticas da coleção
-- [x] Persistência em arquivo JSON com Jackson
-- [x] Menu interativo CLI
-- [x] Filtros e ordenações no menu (submenus)
-- [ ] Banco de dados com JPA
-- [ ] API REST com Quarkus
-- [ ] Interface web
+You can create a native executable using:
 
----
+```shell script
+./mvnw package -Dnative
+```
 
-## 👨‍💻 Autor
+Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
 
-Desenvolvido por **Marcos Guisleri**  
-[![GitHub](https://img.shields.io/badge/GitHub-seu--usuario-181717?style=flat&logo=github)](https://github.com/seu-usuario)
+```shell script
+./mvnw package -Dnative -Dquarkus.native.container-build=true
+```
+
+You can then execute your native executable with: `./target/game-vault-1.0.0-SNAPSHOT-runner`
+
+If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
+
+## Related Guides
+
+- Hibernate Validator ([guide](https://quarkus.io/guides/validation)): Bean validation using Hibernate Validator and Jakarta Validation annotations
+- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Generate OpenAPI schemas and serve Swagger UI for REST API documentation
+- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
+- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplified JPA/Hibernate data access layer with active record and repository patterns
+- JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
+
+## Provided Code
+
+### Hibernate ORM
+
+Create your first JPA entity
+
+[Related guide section...](https://quarkus.io/guides/hibernate-orm)
+
+
+[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
+
+
+### REST
+
+Easily start your REST Web Services
+
+[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
