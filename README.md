@@ -92,7 +92,7 @@ Na primeira execução, o sistema carrega uma coleção inicial de jogos e gera 
 - [x] Persistência em arquivo JSON com Jackson
 - [x] Menu interativo CLI
 - [x] Filtros e ordenações no menu (submenus)
-- [ ] Banco de dados com JPA
+- [ ] Banco de dados com PostgreSQL
 - [ ] API REST com Quarkus
 - [ ] Interface web
 
