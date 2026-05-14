@@ -1,12 +1,14 @@
 # 🎮 GameVault
 
-Sistema de gerenciamento de biblioteca de jogos pessoal, evoluído de uma aplicação CLI com persistência em JSON para uma API REST com banco de dados relacional.
+Sistema de gerenciamento de biblioteca de jogos pessoal, evoluído de uma aplicação CLI orientada a objetos para uma API REST completa com banco de dados relacional.
 
 ---
 
-## 📋 Sobre o projeto
+## 📖 Sobre o projeto
 
-O GameVault permite gerenciar uma coleção de jogos registrando informações como gênero, ano de lançamento, horas jogadas e status de conclusão. Nesta fase, o projeto foi migrado de uma aplicação CLI orientada a objetos para uma API REST construída com Quarkus e PostgreSQL.
+O GameVault permite gerenciar uma coleção de jogos registrando informações como título, gênero, ano de lançamento, horas jogadas e status de conclusão.
+
+O projeto passou por duas fases distintas de desenvolvimento, cada uma com seu próprio conjunto de tecnologias e conceitos aplicados.
 
 > A versão CLI original está preservada na branch `master`.
 
@@ -14,12 +16,14 @@ O GameVault permite gerenciar uma coleção de jogos registrando informações c
 
 ## 🚀 Funcionalidades
 
-- ➕ Cadastrar novos jogos
+- ➕ Cadastrar, editar e remover jogos
 - 📋 Listar todos os jogos da coleção
-- 🔍 Buscar jogo por título
-- 🎯 Filtros por gênero, status de conclusão e ano
-- 🔃 Ordenação por título, ano e horas jogadas
+- 🔍 Buscar jogo por ID ou título
+- 🎯 Filtrar por gênero, status de conclusão, ano e horas jogadas
+- 🔃 Ordenar por título, gênero, ano ou horas jogadas
+- ✅ Validações automáticas nos dados de entrada
 - 📖 Documentação interativa via Swagger UI
+- ❤️ Health check via SmallRye Health
 
 ---
 
@@ -28,12 +32,12 @@ O GameVault permite gerenciar uma coleção de jogos registrando informações c
 ```
 src/main/java/br/dev/guisleri/
 ├── model/
-│   ├── Jogo.java               # Entidade JPA com Panache
-│   └── Genero.java             # Enum com 12 gêneros disponíveis
+│   ├── Jogo.java               # Entidade JPA com Panache e Bean Validation
+│   └── Genero.java             # Enum com os gêneros disponíveis
 ├── resource/
-│   └── JogoResource.java       # Endpoints REST
+│   └── JogoResource.java       # Endpoints REST (JAX-RS)
 └── service/
-    └── JogoService.java        # Regras de negócio
+    └── JogoService.java        # Regras de negócio com JPQL e Panache
 ```
 
 ---
@@ -41,12 +45,13 @@ src/main/java/br/dev/guisleri/
 ## 🧰 Tecnologias
 
 - Java 25
-- Quarkus 3
+- Quarkus 3.35
 - Hibernate ORM with Panache
 - PostgreSQL
-- RESTEasy Reactive + Jackson
-- Hibernate Validator
+- Hibernate Validator (Bean Validation)
+- Quarkus REST + Jackson
 - SmallRye OpenAPI (Swagger UI)
+- SmallRye Health
 - Docker
 
 ---
@@ -63,21 +68,68 @@ cd game-vault
 # Mude para a branch Quarkus
 git checkout feature/quarkus
 
+# Copie e configure as variáveis de ambiente
+cp src/main/resources/application.properties.example src/main/resources/application.properties
+
 # Suba o banco de dados
-docker run --name gamevault-db \
-  -e POSTGRES_USER=gamevault \
-  -e POSTGRES_PASSWORD=gamevault \
-  -e POSTGRES_DB=gamevault \
-  -p 5432:5432 \
-  -d postgres:15
+docker compose up -d
 
 # Inicie a aplicação em modo dev
 ./mvnw quarkus:dev
 ```
 
-A aplicação estará disponível em `http://localhost:8080`.
+| URL | Descrição |
+|---|---|
+| `http://localhost:8080/jogos` | API REST |
+| `http://localhost:8080/q/swagger-ui` | Swagger UI |
+| `http://localhost:8080/q/health` | Health check |
 
-O Swagger UI estará disponível em `http://localhost:8080/q/swagger-ui`.
+---
+
+## 📡 Endpoints
+
+### CRUD
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `POST` | `/jogos` | Cadastrar um jogo |
+| `PUT` | `/jogos/{id}` | Atualizar um jogo |
+| `DELETE` | `/jogos/{id}` | Remover um jogo |
+
+### Buscas
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/jogos` | Listar todos os jogos |
+| `GET` | `/jogos/{id}` | Buscar por ID |
+| `GET` | `/jogos/titulo/{titulo}` | Buscar por título |
+
+### Filtros
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/jogos/zerados` | Listar jogos zerados |
+| `GET` | `/jogos/nao-zerados` | Listar jogos não zerados |
+| `GET` | `/jogos/genero/{genero}` | Filtrar por gênero |
+| `GET` | `/jogos/ano/{ano}` | Filtrar por ano |
+| `GET` | `/jogos/horas-jogadas-mais/{horas}` | Jogos com X horas ou mais |
+| `GET` | `/jogos/horas-jogadas-menos/{horas}` | Jogos com X horas ou menos |
+
+### Ordenações
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/jogos/ordenar-por-titulo` | Ordenar por título |
+| `GET` | `/jogos/ordenar-por-genero` | Ordenar por gênero |
+| `GET` | `/jogos/ordenar-por-ano` | Ordenar por ano |
+| `GET` | `/jogos/ordenar-por-horas-jogadas` | Ordenar por horas jogadas |
+
+---
+
+## 🎮 Gêneros disponíveis
+
+`ACAO` `AVENTURA` `RPG` `ESPORTE` `CORRIDA` `PLATAFORMA`
+`ESTRATEGIA` `SIMULACAO` `TERROR` `LUTA` `PUZZLE` `OUTROS`
 
 ---
 
@@ -91,14 +143,18 @@ O Swagger UI estará disponível em `http://localhost:8080/q/swagger-ui`.
 - `Comparator` para ordenações flexíveis
 - Serialização JSON com Jackson
 - Separação de responsabilidades (Model / Service / Repository / CLI)
+- Padrão seed para dados iniciais
 
 **Fase 2 — API REST com Quarkus** (`feature/quarkus`)
 - JPA com Hibernate ORM e padrão Active Record (Panache)
 - Injeção de dependência com CDI (`@ApplicationScoped`, `@Inject`)
 - Controle de transações com `@Transactional`
 - API REST com JAX-RS
-- Validações declarativas com Bean Validation
-- Documentação automática com OpenAPI/Swagger
+- Validações declarativas com Bean Validation (`@NotBlank`, `@NotNull`, `@Min`, `@PositiveOrZero`)
+- Consultas JPQL com Panache
+- Documentação automática com OpenAPI / Swagger UI
+- Health check com SmallRye Health
+- Containerização do banco com Docker Compose
 
 ---
 
@@ -112,6 +168,10 @@ O Swagger UI estará disponível em `http://localhost:8080/q/swagger-ui`.
 - [x] Filtros e ordenações no menu (submenus)
 - [x] Banco de dados com JPA + PostgreSQL
 - [x] API REST com Quarkus
+- [x] Validações com Bean Validation
+- [x] Documentação com Swagger UI
+- [ ] Tratamento de erros padronizado
+- [ ] Testes automatizados
 - [ ] Interface web
 
 ---
