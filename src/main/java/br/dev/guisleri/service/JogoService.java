@@ -1,5 +1,6 @@
 package br.dev.guisleri.service;
 
+import br.dev.guisleri.exception.JogoJaCadastradoException;
 import br.dev.guisleri.model.Genero;
 import br.dev.guisleri.model.Jogo;
 import io.quarkus.panache.common.Sort;
@@ -14,6 +15,12 @@ public class JogoService {
     // CRUD
     @Transactional
     public void adicionarJogo(Jogo jogo) {
+        Jogo jogoExistente = buscarJogoPorTitulo(jogo.titulo);
+
+        if (jogoExistente != null) {
+            throw new JogoJaCadastradoException("Já existe um jogo cadastrado com esse título.");
+        }
+
         jogo.persist();
     }
 
