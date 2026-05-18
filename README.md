@@ -22,6 +22,7 @@ O projeto passou por duas fases distintas de desenvolvimento, cada uma com seu p
 - 🎯 Filtrar por gênero, status de conclusão, ano e horas jogadas
 - 🔃 Ordenar por título, gênero, ano ou horas jogadas
 - ✅ Validações automáticas nos dados de entrada
+- 🚨 Tratamento de erros padronizado com respostas consistentes
 - 📖 Documentação interativa via Swagger UI
 - ❤️ Health check via SmallRye Health
 
@@ -31,13 +32,20 @@ O projeto passou por duas fases distintas de desenvolvimento, cada uma com seu p
 
 ```
 src/main/java/br/dev/guisleri/
+├── dto/
+│   └── RespostaApiDTO.java         # DTO genérico para respostas da API
+├── exception/
+│   ├── JogoJaCadastradoException.java
+│   ├── JogoJaCadastradoExceptionMapper.java
+│   ├── JogoNaoEncontradoException.java
+│   └── JogoNaoEncontradoExceptionMapper.java
 ├── model/
-│   ├── Jogo.java               # Entidade JPA com Panache e Bean Validation
-│   └── Genero.java             # Enum com os gêneros disponíveis
+│   ├── Jogo.java                   # Entidade JPA com Panache e Bean Validation
+│   └── Genero.java                 # Enum com os gêneros disponíveis
 ├── resource/
-│   └── JogoResource.java       # Endpoints REST (JAX-RS)
+│   └── JogoResource.java           # Endpoints REST (JAX-RS)
 └── service/
-    └── JogoService.java        # Regras de negócio com JPQL e Panache
+    └── JogoService.java            # Regras de negócio com JPQL e Panache
 ```
 
 ---
@@ -68,8 +76,14 @@ cd game-vault
 # Mude para a branch Quarkus
 git checkout feature/quarkus
 
-# Copie e configure as variáveis de ambiente
-cp src/main/resources/application.properties.example src/main/resources/application.properties
+# Configure as variáveis de ambiente
+# Crie o arquivo src/main/resources/application-local.properties com as credenciais:
+#
+#   quarkus.datasource.username=postgres
+#   quarkus.datasource.password=postgres
+#   quarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5433/gamevault
+#
+# Esse arquivo não sobe para o Git (.gitignore)
 
 # Suba o banco de dados
 docker compose up -d
@@ -128,8 +142,8 @@ docker compose up -d
 
 ## 🎮 Gêneros disponíveis
 
-`ACAO` `AVENTURA` `RPG` `ESPORTE` `CORRIDA` `PLATAFORMA`
-`ESTRATEGIA` `SIMULACAO` `TERROR` `LUTA` `PUZZLE` `OUTROS`
+`ACAO` `AVENTURA` `RPG` `FPS` `LUTA` `ESPORTE` `CORRIDA`
+`ESTRATEGIA` `TERROR` `PLATAFORMA` `SIMULACAO` `PUZZLE`
 
 ---
 
@@ -151,7 +165,9 @@ docker compose up -d
 - Controle de transações com `@Transactional`
 - API REST com JAX-RS
 - Validações declarativas com Bean Validation (`@NotBlank`, `@NotNull`, `@Min`, `@PositiveOrZero`)
-- Consultas JPQL com Panache
+- Consultas JPQL com Panache e `Optional` via `firstResultOptional` / `findByIdOptional`
+- Tratamento de erros centralizado com `ExceptionMapper` e exceptions customizadas
+- DTO genérico com Java Records para respostas padronizadas
 - Documentação automática com OpenAPI / Swagger UI
 - Health check com SmallRye Health
 - Containerização do banco com Docker Compose
@@ -170,7 +186,8 @@ docker compose up -d
 - [x] API REST com Quarkus
 - [x] Validações com Bean Validation
 - [x] Documentação com Swagger UI
-- [ ] Tratamento de erros padronizado
+- [x] Tratamento de erros padronizado
+- [ ] Versionamento do banco com Flyway
 - [ ] Testes automatizados
 - [ ] Interface web
 
@@ -179,4 +196,4 @@ docker compose up -d
 ## 👨‍💻 Autor
 
 Desenvolvido por **Marcos Guisleri**  
-[![GitHub](https://img.shields.io/badge/GitHub-marcosguisleri-181717?style=flat&logo=github)](https://github.com/marcosguisleri)
+[![GitHub](https://img.shields.io/badge/GitHub-marcosguislei-181717?style=flat&logo=github)](https://github.com/marcosguisleri)

@@ -1,6 +1,7 @@
 package br.dev.guisleri.service;
 
 import br.dev.guisleri.exception.JogoJaCadastradoException;
+import br.dev.guisleri.exception.JogoNaoEncontradoException;
 import br.dev.guisleri.model.Genero;
 import br.dev.guisleri.model.Jogo;
 import io.quarkus.panache.common.Sort;
@@ -15,9 +16,11 @@ public class JogoService {
     // CRUD
     @Transactional
     public void adicionarJogo(Jogo jogo) {
-        Jogo jogoExistente = buscarJogoPorTitulo(jogo.titulo);
+        boolean jaExiste = Jogo.find("LOWER(titulo) = LOWER(?1)", jogo.titulo)
+                .firstResultOptional()
+                .isPresent();
 
-        if (jogoExistente != null) {
+        if (jaExiste) {
             throw new JogoJaCadastradoException("Já existe um jogo cadastrado com esse título.");
         }
 
@@ -26,31 +29,33 @@ public class JogoService {
 
     @Transactional
     public Jogo atualizarJogo(Long id, Jogo dadosAtualizados) {
-        Jogo jogo = Jogo.findById(id);
+        Jogo jogo = buscarJogoPorId(id);
 
-        if (jogo != null) {
-            jogo.titulo = dadosAtualizados.titulo;
-            jogo.genero = dadosAtualizados.genero;
-            jogo.anoLancamento = dadosAtualizados.anoLancamento;
-            jogo.quantHorasJogadas = dadosAtualizados.quantHorasJogadas;
-            jogo.zerado = dadosAtualizados.zerado;
-        }
+        jogo.titulo = dadosAtualizados.titulo;
+        jogo.genero = dadosAtualizados.genero;
+        jogo.anoLancamento = dadosAtualizados.anoLancamento;
+        jogo.quantHorasJogadas = dadosAtualizados.quantHorasJogadas;
+        jogo.zerado = dadosAtualizados.zerado;
 
         return jogo;
     }
 
     @Transactional
     public void removerJogo(Long id) {
+        buscarJogoPorId(id);
         Jogo.deleteById(id);
     }
 
     // Buscas
     public Jogo buscarJogoPorId(Long id) {
-        return Jogo.findById(id);
+        return Jogo.<Jogo>findByIdOptional(id)
+                .orElseThrow(() -> new JogoNaoEncontradoException("Jogo com ID " + id + " não encontrado."));
     }
 
     public Jogo buscarJogoPorTitulo(String titulo) {
-        return Jogo.find("LOWER(titulo) = LOWER(?1)", titulo).firstResult();
+        return Jogo.<Jogo>find("LOWER(titulo) = LOWER(?1)", titulo)
+                .firstResultOptional()
+                .orElseThrow(() -> new JogoNaoEncontradoException("Jogo com título \"" + titulo + "\" não encontrado."));
     }
 
     // Listagens
@@ -98,5 +103,4 @@ public class JogoService {
     public List<Jogo> listarJogosOrdenadosPorHorasJogadas() {
         return Jogo.listAll(Sort.by("quantHorasJogadas"));
     }
-
 }

@@ -23,7 +23,6 @@ public class JogoResource {
     @POST
     public Response adicionarJogo(@Valid Jogo jogo) {
         jogoService.adicionarJogo(jogo);
-
         return Response.status(Response.Status.CREATED)
                 .entity(RespostaApiDTO.comDados("Jogo cadastrado com sucesso!", jogo))
                 .build();
@@ -32,32 +31,14 @@ public class JogoResource {
     @PUT
     @Path("/{id}")
     public Response atualizarJogo(@PathParam("id") Long id, @Valid Jogo dadosAtualizados) {
-        Jogo jogo = jogoService.buscarJogoPorId(id);
-
-        if (jogo == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity(RespostaApiDTO.semDados("Jogo não encontrado."))
-                    .build();
-        }
-
         Jogo jogoAtualizado = jogoService.atualizarJogo(id, dadosAtualizados);
-
         return Response.ok(RespostaApiDTO.comDados("Jogo atualizado com sucesso.", jogoAtualizado)).build();
     }
 
     @DELETE
     @Path("/{id}")
     public Response removerJogo(@PathParam("id") Long id) {
-        Jogo jogo = jogoService.buscarJogoPorId(id);
-
-        if (jogo == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity(RespostaApiDTO.semDados("Jogo não encontrado."))
-                    .build();
-        }
-
         jogoService.removerJogo(id);
-
         return Response.ok(RespostaApiDTO.semDados("Jogo removido com sucesso.")).build();
     }
 
@@ -66,13 +47,6 @@ public class JogoResource {
     @Path("/{id}")
     public Response buscarJogoPorId(@PathParam("id") Long id) {
         Jogo jogo = jogoService.buscarJogoPorId(id);
-
-        if (jogo == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity(RespostaApiDTO.semDados("Jogo não encontrado."))
-                    .build();
-        }
-
         return Response.ok(RespostaApiDTO.comDados("Jogo encontrado com sucesso.", jogo)).build();
     }
 
@@ -80,13 +54,6 @@ public class JogoResource {
     @Path("/titulo/{titulo}")
     public Response buscarJogoPorTitulo(@PathParam("titulo") String titulo) {
         Jogo jogo = jogoService.buscarJogoPorTitulo(titulo);
-
-        if (jogo == null) {
-            return Response.status(Response.Status.NOT_FOUND)
-                    .entity(RespostaApiDTO.semDados("Jogo não encontrado."))
-                    .build();
-        }
-
         return Response.ok(RespostaApiDTO.comDados("Jogo encontrado com sucesso.", jogo)).build();
     }
 
