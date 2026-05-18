@@ -140,7 +140,18 @@ public class JogoResource {
 
     @GET
     @Path("/genero/{genero}")
-    public Response listarJogosPorGenero(@PathParam("genero") Genero genero) {
+    public Response listarJogosPorGenero(@PathParam("genero") String generoTexto) {
+        Genero genero;
+
+        try {
+            genero = Genero.valueOf(generoTexto.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(RespostaApiDTO.semDados(
+                    "Gênero inválido. Valores permitidos: ACAO, AVENTURA, RPG, FPS, LUTA, ESPORTE, CORRIDA, ESTRATEGIA, TERROR, PLATAFORMA, SIMULACAO, PUZZLE"))
+                    .build();
+        }
+
         List<Jogo> jogos = jogoService.listarJogosPorGenero(genero);
 
         if (jogos.isEmpty()) {
