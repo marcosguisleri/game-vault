@@ -18,7 +18,7 @@ public class JogoService {
     }
 
     @Transactional
-    public void atualizarJogo(Long id, Jogo dadosAtualizados) {
+    public Jogo atualizarJogo(Long id, Jogo dadosAtualizados) {
         Jogo jogo = Jogo.findById(id);
 
         if (jogo != null) {
@@ -28,6 +28,8 @@ public class JogoService {
             jogo.quantHorasJogadas = dadosAtualizados.quantHorasJogadas;
             jogo.zerado = dadosAtualizados.zerado;
         }
+
+        return jogo;
     }
 
     @Transactional
