@@ -1,5 +1,8 @@
 package br.dev.guisleri.resource;
 
+import br.dev.guisleri.dto.AdicionarHorasDTO;
+import br.dev.guisleri.dto.JogoRequestDTO;
+import br.dev.guisleri.dto.JogoResponseDTO;
 import br.dev.guisleri.dto.RespostaApiDTO;
 import br.dev.guisleri.model.Genero;
 import br.dev.guisleri.model.Jogo;
@@ -21,18 +24,20 @@ public class JogoResource {
     JogoService jogoService;
 
     @POST
-    public Response adicionarJogo(@Valid Jogo jogo) {
+    public Response adicionarJogo(@Valid JogoRequestDTO dto) {
+        Jogo jogo = new Jogo(dto.titulo(), dto.genero(), dto.anoLancamento(), dto.quantHorasJogadas(), dto.zerado());
         jogoService.adicionarJogo(jogo);
         return Response.status(Response.Status.CREATED)
-                .entity(RespostaApiDTO.comDados("Jogo cadastrado com sucesso!", jogo))
+                .entity(RespostaApiDTO.comDados("Jogo cadastrado com sucesso!", JogoResponseDTO.from(jogo)))
                 .build();
     }
 
     @PUT
     @Path("/{id}")
-    public Response atualizarJogo(@PathParam("id") Long id, @Valid Jogo dadosAtualizados) {
+    public Response atualizarJogo(@PathParam("id") Long id, @Valid JogoRequestDTO dto) {
+        Jogo dadosAtualizados = new Jogo(dto.titulo(), dto.genero(), dto.anoLancamento(), dto.quantHorasJogadas(), dto.zerado());
         Jogo jogoAtualizado = jogoService.atualizarJogo(id, dadosAtualizados);
-        return Response.ok(RespostaApiDTO.comDados("Jogo atualizado com sucesso.", jogoAtualizado)).build();
+        return Response.ok(RespostaApiDTO.comDados("Jogo atualizado com sucesso.", JogoResponseDTO.from(jogoAtualizado))).build();
     }
 
     @DELETE
@@ -42,67 +47,57 @@ public class JogoResource {
         return Response.ok(RespostaApiDTO.semDados("Jogo removido com sucesso.")).build();
     }
 
+    @PATCH
+    @Path("/{id}/zerar")
+    public Response zerarJogo(@PathParam("id") Long id) {
+        Jogo jogo = jogoService.zerarJogo(id);
+        return Response.ok(RespostaApiDTO.comDados("Jogo zerado com sucesso.", JogoResponseDTO.from(jogo))).build();
+    }
+
+    @PATCH
+    @Path("/{id}/horas")
+    public Response adicionarHorasJogadas(@PathParam("id") Long id, @Valid AdicionarHorasDTO dto) {
+        Jogo jogo = jogoService.adicionarHorasJogadas(id, dto.horas());
+        return Response.ok(RespostaApiDTO.comDados("Horas adicionadas com sucesso.", JogoResponseDTO.from(jogo))).build();
+    }
+
     // Buscas
     @GET
     @Path("/{id}")
     public Response buscarJogoPorId(@PathParam("id") Long id) {
         Jogo jogo = jogoService.buscarJogoPorId(id);
-        return Response.ok(RespostaApiDTO.comDados("Jogo encontrado com sucesso.", jogo)).build();
+        return Response.ok(RespostaApiDTO.comDados("Jogo encontrado com sucesso.", JogoResponseDTO.from(jogo))).build();
     }
 
     @GET
     @Path("/titulo/{titulo}")
     public Response buscarJogoPorTitulo(@PathParam("titulo") String titulo) {
         Jogo jogo = jogoService.buscarJogoPorTitulo(titulo);
-        return Response.ok(RespostaApiDTO.comDados("Jogo encontrado com sucesso.", jogo)).build();
+        return Response.ok(RespostaApiDTO.comDados("Jogo encontrado com sucesso.", JogoResponseDTO.from(jogo))).build();
     }
 
     // Listagens
+    private Response listarComMensagem(List<Jogo> jogos, String msgSucesso, String msgVazia) {
+        List<JogoResponseDTO> dtos = jogos.stream().map(JogoResponseDTO::from).toList();
+        String mensagem = jogos.isEmpty() ? msgVazia : msgSucesso;
+        return Response.ok(RespostaApiDTO.comDados(mensagem, dtos)).build();
+    }
+
     @GET
     public Response listarJogos() {
-        List<Jogo> jogos = jogoService.listarJogos();
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo encontrado.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos listados com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogos(), "Jogos listados com sucesso.", "Nenhum jogo encontrado.");
     }
 
     @GET
     @Path("/zerados")
     public Response listarJogosZerados() {
-        List<Jogo> jogos = jogoService.listarJogosZerados();
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo zerado encontrado.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos zerados listados com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosZerados(), "Jogos zerados listados com sucesso.", "Nenhum jogo zerado encontrado.");
     }
 
     @GET
     @Path("/nao-zerados")
     public Response listarJogosNaoZerados() {
-        List<Jogo> jogos = jogoService.listarJogosNaoZerados();
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo não zerado encontrado.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos não zerados listados com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosNaoZerados(), "Jogos não zerados listados com sucesso.", "Nenhum jogo não zerado encontrado.");
     }
 
     @GET
@@ -119,130 +114,50 @@ public class JogoResource {
                     .build();
         }
 
-        List<Jogo> jogos = jogoService.listarJogosPorGenero(genero);
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo encontrado nesse gênero.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos do gênero " + genero + " listados com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosPorGenero(genero), "Jogos do gênero " + genero + " listados com sucesso.", "Nenhum jogo encontrado nesse gênero.");
     }
 
     @GET
     @Path("/ano/{ano}")
     public Response listarJogosPorAno(@PathParam("ano") int ano) {
-        List<Jogo> jogos = jogoService.listarJogosPorAno(ano);
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo encontrado para o ano informado.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos lançados em " + ano + " listados com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosPorAno(ano), "Jogos do ano " + ano + " listados com sucesso.", "Nenhum jogo encontrado nesse ano.");
     }
 
     @GET
     @Path("/horas-jogadas-mais/{horas}")
     public Response listarJogosPorHorasJogadasMais(@PathParam("horas") int horas) {
-        List<Jogo> jogos = jogoService.listarJogosPorHorasJogadasMais(horas);
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo encontrado com pelo menos " + horas + " horas jogadas.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos com pelo menos " + horas + " horas jogadas listados com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosPorHorasJogadasMais(horas), "Jogos com mais de " + horas + " horas jogadas listados com sucesso.", "Nenhum jogo encontrado com mais de " + horas + " horas jogadas.");
     }
 
     @GET
     @Path("/horas-jogadas-menos/{horas}")
     public Response listarJogosPorHorasJogadasMenos(@PathParam("horas") int horas) {
-        List<Jogo> jogos = jogoService.listarJogosPorHorasJogadasMenos(horas);
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo encontrado com até " + horas + " horas jogadas.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos com até " + horas + " horas jogadas listados com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosPorHorasJogadasMenos(horas), "Jogos com menos de " + horas + " horas jogadas listados com sucesso.", "Nenhum jogo encontrado com menos de " + horas + " horas jogadas.");
     }
 
     // Ordenações
     @GET
     @Path("/ordenar-por-titulo")
     public Response listarJogosOrdenadosPorTitulo() {
-        List<Jogo> jogos = jogoService.listarJogosOrdenadosPorTitulo();
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo encontrado para ordenar por título.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos ordenados por título com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosOrdenadosPorTitulo(), "Jogos ordenados por título.", "Nenhum jogo encontrado.");
     }
 
     @GET
     @Path("/ordenar-por-genero")
     public Response listarJogosOrdenadosPorGenero() {
-        List<Jogo> jogos = jogoService.listarJogosOrdenadosPorGenero();
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo encontrado para ordenar por gênero.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos ordenados por gênero com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosOrdenadosPorGenero(), "Jogos ordenados por gênero.", "Nenhum jogo encontrado.");
     }
 
     @GET
     @Path("/ordenar-por-ano")
     public Response listarJogosOrdenadosPorAno() {
-        List<Jogo> jogos = jogoService.listarJogosOrdenadosPorAno();
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo encontrado para ordenar por ano.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos ordenados por ano de lançamento com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosOrdenadosPorAno(), "Jogos ordenados por ano.", "Nenhum jogo encontrado.");
     }
 
     @GET
     @Path("/ordenar-por-horas-jogadas")
     public Response listarJogosOrdenadosPorHorasJogadas() {
-        List<Jogo> jogos = jogoService.listarJogosOrdenadosPorHorasJogadas();
-
-        if (jogos.isEmpty()) {
-            return Response.ok(
-                    RespostaApiDTO.comDados("Nenhum jogo encontrado para ordenar por horas jogadas.", jogos)
-            ).build();
-        }
-
-        return Response.ok(
-                RespostaApiDTO.comDados("Jogos ordenados por horas jogadas com sucesso.", jogos)
-        ).build();
+        return listarComMensagem(jogoService.listarJogosOrdenadosPorHorasJogadas(), "Jogos ordenados por horas jogadas.", "Nenhum jogo encontrado.");
     }
 
 }

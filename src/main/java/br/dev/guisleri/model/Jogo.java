@@ -9,20 +9,16 @@ import jakarta.validation.constraints.*;
 public class Jogo extends PanacheEntity {
 
     @Column(nullable = false)
-    @NotBlank(message = "Título não pode ser vazio")
     public String titulo;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @NotNull(message = "Gênero não pode ser nulo")
     public Genero genero;
 
     @Column(name = "ano_lancamento", nullable = false)
-    @Min(value = 1958, message = "Ano lançamento inválido")
     public int anoLancamento;
 
     @Column(name = "quant_horas_jogadas", nullable = false)
-    @PositiveOrZero(message = "Quantidade de horas jogadas deve ser positiva ou zero")
     public int quantHorasJogadas;
 
     @Column(nullable = false)

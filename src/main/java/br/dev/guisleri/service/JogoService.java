@@ -46,6 +46,20 @@ public class JogoService {
         Jogo.deleteById(id);
     }
 
+    @Transactional
+    public Jogo zerarJogo(Long id) {
+        Jogo jogo = buscarJogoPorId(id);
+        jogo.zerarJogo();
+        return jogo;
+    }
+
+    @Transactional
+    public Jogo adicionarHorasJogadas(Long id, int horas) {
+        Jogo jogo = buscarJogoPorId(id);
+        jogo.adicionarHorasJogadas(horas);
+        return jogo;
+    }
+
     // Buscas
     public Jogo buscarJogoPorId(Long id) {
         return Jogo.<Jogo>findByIdOptional(id)
@@ -59,48 +73,17 @@ public class JogoService {
     }
 
     // Listagens
-    public List<Jogo> listarJogos() {
-        return Jogo.listAll();
-    }
-
-    public List<Jogo> listarJogosNaoZerados() {
-        return Jogo.list("zerado", false);
-    }
-
-    public List<Jogo> listarJogosZerados() {
-        return Jogo.list("zerado", true);
-    }
-
-    public List<Jogo> listarJogosPorGenero(Genero genero) {
-        return Jogo.list("genero", genero);
-    }
-
-    public List<Jogo> listarJogosPorAno(int ano) {
-        return Jogo.list("anoLancamento", ano);
-    }
-
-    public List<Jogo> listarJogosPorHorasJogadasMais(int horas) {
-        return Jogo.list("quantHorasJogadas >= ?1", horas);
-    }
-
-    public List<Jogo> listarJogosPorHorasJogadasMenos(int horas) {
-        return Jogo.list("quantHorasJogadas <= ?1", horas);
-    }
+    public List<Jogo> listarJogos() { return Jogo.listAll(); }
+    public List<Jogo> listarJogosNaoZerados() { return Jogo.list("zerado", false); }
+    public List<Jogo> listarJogosZerados() { return Jogo.list("zerado", true); }
+    public List<Jogo> listarJogosPorGenero(Genero genero) { return Jogo.list("genero", genero); }
+    public List<Jogo> listarJogosPorAno(int ano) { return Jogo.list("anoLancamento", ano); }
+    public List<Jogo> listarJogosPorHorasJogadasMais(int horas) { return Jogo.list("quantHorasJogadas >= ?1", horas); }
+    public List<Jogo> listarJogosPorHorasJogadasMenos(int horas) { return Jogo.list("quantHorasJogadas <= ?1", horas); }
 
     // Ordenações
-    public List<Jogo> listarJogosOrdenadosPorTitulo() {
-        return Jogo.listAll(Sort.by("titulo"));
-    }
-
-    public List<Jogo> listarJogosOrdenadosPorGenero() {
-        return Jogo.listAll(Sort.by("genero"));
-    }
-
-    public List<Jogo> listarJogosOrdenadosPorAno() {
-        return Jogo.listAll(Sort.by("anoLancamento"));
-    }
-
-    public List<Jogo> listarJogosOrdenadosPorHorasJogadas() {
-        return Jogo.listAll(Sort.by("quantHorasJogadas"));
-    }
+    public List<Jogo> listarJogosOrdenadosPorTitulo() { return Jogo.listAll(Sort.by("titulo")); }
+    public List<Jogo> listarJogosOrdenadosPorGenero() { return Jogo.listAll(Sort.by("genero")); }
+    public List<Jogo> listarJogosOrdenadosPorAno() { return Jogo.listAll(Sort.by("anoLancamento")); }
+    public List<Jogo> listarJogosOrdenadosPorHorasJogadas() { return Jogo.listAll(Sort.by("quantHorasJogadas")); }
 }
