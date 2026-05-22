@@ -1,6 +1,7 @@
 package br.dev.guisleri.service;
 
 import br.dev.guisleri.exception.JogoJaCadastradoException;
+import br.dev.guisleri.exception.JogoJaZeradoException;
 import br.dev.guisleri.exception.JogoNaoEncontradoException;
 import br.dev.guisleri.model.Genero;
 import br.dev.guisleri.model.Jogo;
@@ -49,6 +50,11 @@ public class JogoService {
     @Transactional
     public Jogo zerarJogo(Long id) {
         Jogo jogo = buscarJogoPorId(id);
+
+        if (jogo.isZerado()) {
+            throw new JogoJaZeradoException("Este jogo já está zerado.");
+        }
+
         jogo.zerarJogo();
         return jogo;
     }
@@ -69,7 +75,7 @@ public class JogoService {
     public Jogo buscarJogoPorTitulo(String titulo) {
         return Jogo.<Jogo>find("LOWER(titulo) = LOWER(?1)", titulo)
                 .firstResultOptional()
-                .orElseThrow(() -> new JogoNaoEncontradoException("Jogo com título \"" + titulo + "\" não encontrado."));
+                .orElseThrow(() -> new JogoNaoEncontradoException("Jogo com título " + titulo + " não encontrado."));
     }
 
     // Listagens

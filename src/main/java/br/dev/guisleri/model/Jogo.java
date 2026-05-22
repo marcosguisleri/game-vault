@@ -38,6 +38,10 @@ public class Jogo extends PanacheEntity {
         this.zerado = true;
     }
 
+    public boolean isZerado() {
+        return zerado;
+    }
+
     public void adicionarHorasJogadas(int horas) {
         if (horas <= 0) throw new IllegalArgumentException("Horas devem ser positivas.");
         this.quantHorasJogadas += horas;
