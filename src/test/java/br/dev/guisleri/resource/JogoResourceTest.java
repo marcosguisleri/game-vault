@@ -57,7 +57,7 @@ class JogoResourceTest {
     // TESTES DE CADASTRO
 
     @Test
-    void deveCadastrarJogo() {
+    void deveCadastrarJogoComSucesso() {
         String json = """
                 {
                     "titulo": "Forza Horizon 6",
@@ -109,7 +109,7 @@ class JogoResourceTest {
     }
 
     @Test
-    void naoDeveCadastrarComDadosInvalidos() {
+    void naoDeveCadastrarJogoComDadosInvalidos() {
         String json = """
                 {
                     "titulo": "",
@@ -134,7 +134,7 @@ class JogoResourceTest {
     // TESTES DE BUSCAS
 
     @Test
-    void buscarPorIdComSucesso() {
+    void deveBuscarJogoPorIdComSucesso() {
         Long id = criarJogo("Forza Horizon 6");
 
         given()
@@ -148,7 +148,7 @@ class JogoResourceTest {
     }
 
     @Test
-    void buscarPorIdInexistente() {
+    void naoDeveBuscarJogoPorIdInexistente() {
         given()
                 .when()
                 .get("/jogos/{id}", 99999)
@@ -159,7 +159,7 @@ class JogoResourceTest {
     }
 
     @Test
-    void buscarPorTituloComSucesso() {
+    void deveBuscarJogoPorTituloComSucesso() {
         Long id = criarJogo("Forza Horizon 6");
 
         given()
@@ -173,10 +173,10 @@ class JogoResourceTest {
     }
 
     @Test
-    void buscarPorTituloInexistente() {
+    void naoDeveBuscarJogoPorTituloInexistente() {
         given()
                 .when()
-                .get("/jogos/{titulo}", "Jogo Inexistente")
+                .get("/jogos/titulo/{titulo}", "Jogo Inexistente")
                 .then()
                 .statusCode(404)
                 .body("mensagem", equalTo("Jogo com título Jogo Inexistente não encontrado."))
@@ -263,7 +263,7 @@ class JogoResourceTest {
                 .then()
                 .statusCode(409)
                 .body("mensagem", equalTo("Este jogo já está zerado."))
-                .body("dados", notNullValue());
+                .body("dados", nullValue());
     }
 
     @Test
@@ -286,8 +286,19 @@ class JogoResourceTest {
     }
 
     @Test
+    void naoDeveRemoverJogoInexistente() {
+        given()
+                .when()
+                .delete("/jogos/{id}", 99999)
+                .then()
+                .statusCode(404)
+                .body("mensagem", equalTo("Jogo com ID 99999 não encontrado."))
+                .body("dados", nullValue());
+    }
+
+    @Test
     void deveAdicionarHorasJogadasComSucesso() {
-        Long id = criarJogo("Forza Horizon 6");
+        Long id = criarJogo("Forza Horizon 6", "CORRIDA", 2026, 100, false);
 
         String json = """
             {
@@ -305,7 +316,7 @@ class JogoResourceTest {
                 .body("mensagem", equalTo("Horas adicionadas com sucesso."))
                 .body("dados.id", equalTo(id.intValue()))
                 .body("dados.titulo", equalTo("Forza Horizon 6"))
-                .body("dados.quantHorasJogadas", equalTo(130));
+                .body("dados.quantHorasJogadas", equalTo(110));
     }
 
     @Test
@@ -330,14 +341,143 @@ class JogoResourceTest {
                 .body("dados[0]", equalTo("horas: Horas devem ser positivas."));
     }
 
+    // TESTES DE LISTAGEM
+
     @Test
-    void naoDeveRemoverJogoInexistente() {
+    void deveListarTodosOsJogosComSucesso() {
+        criarJogo("Forza Horizon 6");
+        criarJogo("Forza Horizon 5");
+
         given()
                 .when()
-                .delete("/jogos/{id}", 99999)
+                .get("/jogos")
                 .then()
-                .statusCode(404)
-                .body("mensagem", equalTo("Jogo com ID 99999 não encontrado."))
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos listados com sucesso."))
+                .body("dados", hasSize(2));
+    }
+
+    @Test
+    void deveRetornarListaVaziaQuandoNaoHouverJogos() {
+        given()
+                .when()
+                .get("/jogos")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Nenhum jogo encontrado."))
+                .body("dados", nullValue());
+    }
+
+    @Test
+    void deveListarJogosZeradosComSucesso() {
+        criarJogo("Forza Horizon 6", "CORRIDA", 2026, 10, true);
+        criarJogo("Forza Horizon 5", "CORRIDA", 2026, 20, false);
+
+        given()
+                .when()
+                .get("/jogos/zerados")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos zerados listados com sucesso."))
+                .body("dados", hasSize(1));
+    }
+
+    @Test
+    void deveRetornarListaVaziaQuandoNaoHouverJogosZerados() {
+        given()
+                .when()
+                .get("/jogos/zerados")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Nenhum jogo zerado encontrado."))
+                .body("dados", nullValue());
+    }
+
+    @Test
+    void deveListarJogosNaoZeradosComSucesso() {
+        criarJogo("Forza Horizon 6", "CORRIDA", 2026, 10, true);
+        criarJogo("Forza Horizon 5", "CORRIDA", 2026, 20, false);
+
+        given()
+                .when()
+                .get("/jogos/nao-zerados")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos não zerados listados com sucesso."))
+                .body("dados", hasSize(1));
+    }
+
+    @Test
+    void deveRetornarListaVaziaQuandoNaoHouverJogosNaoZerados() {
+        given()
+                .when()
+                .get("/jogos/nao-zerados")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Nenhum jogo não zerado encontrado."))
+                .body("dados", nullValue());
+    }
+
+    @Test
+    void deveListarJogosPorGeneroComSucesso() {
+        criarJogo("Forza Horizon 6", "RPG", 2026, 10, false);
+        criarJogo("Forza Horizon 5", "CORRIDA", 2026, 20, false);
+
+        given()
+                .when()
+                .get("/jogos/genero/RPG")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos do gênero RPG listados com sucesso."))
+                .body("dados", hasSize(1));
+    }
+
+    @Test
+    void deveRetornarListaVaziaQuandoNaoHouverJogosDoGenero() {
+        given()
+                .when()
+                .get("/jogos/genero/RPG")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Nenhum jogo encontrado nesse gênero."))
+                .body("dados", nullValue());
+    }
+
+    @Test
+    void naoDeveListarJogosPorGeneroInvalido() {
+        given()
+                .when()
+                .get("/jogos/genero/MMORPG")
+                .then()
+                .statusCode(400)
+                .body("mensagem", equalTo("Gênero inválido. Valores permitidos: ACAO, AVENTURA, RPG, FPS, LUTA, ESPORTE, CORRIDA, ESTRATEGIA, TERROR, PLATAFORMA, SIMULACAO, PUZZLE"))
+                .body("dados", nullValue());
+    }
+
+    @Test
+    void deveListarJogosPorAnoComSucesso() {
+        criarJogo("Forza Horizon 6", "RPG", 2026, 10, false);
+        criarJogo("Forza Horizon 5", "CORRIDA", 2026, 20, false);
+        criarJogo("Forza Horizon 4", "CORRIDA", 2020, 20, false);
+        criarJogo("Forza Horizon 3", "CORRIDA", 2019, 20, false);
+
+        given()
+                .when()
+                .get("/jogos/ano/2026")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos do ano 2026 listados com sucesso."))
+                .body("dados", hasSize(2));
+    }
+
+    @Test
+    void deveRetornarListaVaziaQuandoNaoHouverJogosDaqueleAno() {
+        given()
+                .when()
+                .get("/jogos/ano/2020")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Nenhum jogo encontrado nesse ano."))
                 .body("dados", nullValue());
     }
 

@@ -17,6 +17,8 @@ O projeto passou por duas fases distintas de desenvolvimento, cada uma com seu p
 ## 🚀 Funcionalidades
 
 - ➕ Cadastrar, editar e remover jogos
+- ✅ Marcar jogo como zerado via endpoint dedicado
+- ⏱️ Adicionar horas jogadas de forma incremental
 - 📋 Listar todos os jogos da coleção
 - 🔍 Buscar jogo por ID ou título
 - 🎯 Filtrar por gênero, status de conclusão, ano e horas jogadas
@@ -33,40 +35,50 @@ O projeto passou por duas fases distintas de desenvolvimento, cada uma com seu p
 ```
 src/main/java/br/dev/guisleri/
 ├── dto/
-│   └── RespostaApiDTO.java         # DTO genérico para respostas da API
+│   ├── JogoRequestDTO.java          # Dados de entrada da API (criação e atualização)
+│   ├── JogoResponseDTO.java         # Dados de saída da API
+│   ├── AdicionarHorasDTO.java       # DTO para o endpoint de horas
+│   └── RespostaApiDTO.java          # Envelope genérico para todas as respostas
 ├── exception/
 │   ├── JogoJaCadastradoException.java
 │   ├── JogoJaCadastradoExceptionMapper.java
+│   ├── JogoJaZeradoException.java
+│   ├── JogoJaZeradoExceptionMapper.java
 │   ├── JogoNaoEncontradoException.java
-│   └── JogoNaoEncontradoExceptionMapper.java
+│   ├── JogoNaoEncontradoExceptionMapper.java
+│   └── ValidacaoExceptionMapper.java
+├── health/
+│   └── DatabaseHealthCheck.java     # Health check com contagem de jogos
 ├── model/
-│   ├── Jogo.java                   # Entidade JPA com Panache e Bean Validation
-│   └── Genero.java                 # Enum com os gêneros disponíveis
+│   ├── Jogo.java                    # Entidade JPA com Panache e métodos de domínio
+│   └── Genero.java                  # Enum com os gêneros disponíveis
 ├── resource/
-│   └── JogoResource.java           # Endpoints REST (JAX-RS)
+│   └── JogoResource.java            # Endpoints REST (JAX-RS)
 └── service/
-    └── JogoService.java            # Regras de negócio com JPQL e Panache
+    └── JogoService.java             # Regras de negócio com JPQL e Panache
 ```
 
 ---
 
 ## 🧰 Tecnologias
 
-- Java 25
+- Java 21
 - Quarkus 3.35
 - Hibernate ORM with Panache
 - PostgreSQL
+- Flyway
 - Hibernate Validator (Bean Validation)
 - Quarkus REST + Jackson
 - SmallRye OpenAPI (Swagger UI)
 - SmallRye Health
 - Docker
+- JUnit 5 + REST Assured
 
 ---
 
 ## ▶️ Como executar
 
-**Pré-requisitos:** Java 25+, Maven e Docker instalados.
+**Pré-requisitos:** Java 21+, Maven e Docker instalados.
 
 ```bash
 # Clone o repositório
@@ -77,19 +89,20 @@ cd game-vault
 git checkout feature/quarkus
 
 # Configure as variáveis de ambiente
-# Crie o arquivo src/main/resources/application-local.properties com as credenciais:
+# Crie o arquivo src/main/resources/application-local.properties:
 #
 #   quarkus.datasource.username=postgres
 #   quarkus.datasource.password=postgres
 #   quarkus.datasource.jdbc.url=jdbc:postgresql://localhost:5433/gamevault
 #
 # Esse arquivo não sobe para o Git (.gitignore)
+# Use application-local.properties.example como referência
 
 # Suba o banco de dados
 docker compose up -d
 
-# Inicie a aplicação em modo dev
-./mvnw quarkus:dev
+# Inicie a aplicação em modo dev com o profile local
+QUARKUS_PROFILE=local ./mvnw quarkus:dev
 ```
 
 | URL | Descrição |
@@ -97,6 +110,16 @@ docker compose up -d
 | `http://localhost:8080/jogos` | API REST |
 | `http://localhost:8080/q/swagger-ui` | Swagger UI |
 | `http://localhost:8080/q/health` | Health check |
+
+---
+
+## 🧪 Testes
+
+Os testes utilizam Quarkus DevServices — o banco PostgreSQL é iniciado automaticamente via Docker durante a execução, sem configuração manual.
+
+```bash
+./mvnw test
+```
 
 ---
 
@@ -109,6 +132,13 @@ docker compose up -d
 | `POST` | `/jogos` | Cadastrar um jogo |
 | `PUT` | `/jogos/{id}` | Atualizar um jogo |
 | `DELETE` | `/jogos/{id}` | Remover um jogo |
+
+### Ações de domínio
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `PATCH` | `/jogos/{id}/zerar` | Marcar jogo como zerado |
+| `PATCH` | `/jogos/{id}/horas` | Adicionar horas jogadas |
 
 ### Buscas
 
@@ -140,6 +170,35 @@ docker compose up -d
 
 ---
 
+## 📨 Formato das respostas
+
+Todas as respostas seguem o mesmo envelope:
+
+```json
+{
+  "mensagem": "Jogo cadastrado com sucesso!",
+  "dados": {
+    "id": 1,
+    "titulo": "God of War",
+    "genero": "ACAO",
+    "anoLancamento": 2018,
+    "quantHorasJogadas": 40,
+    "zerado": true
+  }
+}
+```
+
+Em caso de erro:
+
+```json
+{
+  "mensagem": "Jogo com ID 99 não encontrado.",
+  "dados": null
+}
+```
+
+---
+
 ## 🎮 Gêneros disponíveis
 
 `ACAO` `AVENTURA` `RPG` `FPS` `LUTA` `ESPORTE` `CORRIDA`
@@ -164,12 +223,16 @@ docker compose up -d
 - Injeção de dependência com CDI (`@ApplicationScoped`, `@Inject`)
 - Controle de transações com `@Transactional`
 - API REST com JAX-RS
+- Padrão DTO com Java Records (`JogoRequestDTO`, `JogoResponseDTO`) desacoplando a entity da API
 - Validações declarativas com Bean Validation (`@NotBlank`, `@NotNull`, `@Min`, `@PositiveOrZero`)
 - Consultas JPQL com Panache e `Optional` via `firstResultOptional` / `findByIdOptional`
 - Tratamento de erros centralizado com `ExceptionMapper` e exceptions customizadas
+- Métodos de domínio na entity (`zerarJogo`, `adicionarHorasJogadas`)
 - DTO genérico com Java Records para respostas padronizadas
+- Versionamento de schema com Flyway
 - Documentação automática com OpenAPI / Swagger UI
 - Health check com SmallRye Health
+- Testes de integração com JUnit 5 + REST Assured e DevServices
 - Containerização do banco com Docker Compose
 
 ---
@@ -187,8 +250,9 @@ docker compose up -d
 - [x] Validações com Bean Validation
 - [x] Documentação com Swagger UI
 - [x] Tratamento de erros padronizado
-- [ ] Versionamento do banco com Flyway
-- [ ] Testes automatizados
+- [x] Versionamento do banco com Flyway
+- [x] Testes automatizados com JUnit 5 + REST Assured
+- [ ] Documentação OpenAPI enriquecida com `@Operation` e `@Schema`
 - [ ] Interface web
 
 ---

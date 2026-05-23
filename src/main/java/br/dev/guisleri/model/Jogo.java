@@ -2,7 +2,6 @@ package br.dev.guisleri.model;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "jogos")

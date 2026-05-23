@@ -138,25 +138,25 @@ public class JogoResource {
     // Ordenações
     @GET
     @Path("/ordenar-por-titulo")
-    public Response listarJogosOrdenadosPorTitulo() {
+    public Response ordernarJogosOrdenadosPorTitulo() {
         return listarComMensagem(jogoService.listarJogosOrdenadosPorTitulo(), "Jogos ordenados por título.", "Nenhum jogo encontrado.");
     }
 
     @GET
     @Path("/ordenar-por-genero")
-    public Response listarJogosOrdenadosPorGenero() {
+    public Response ordernarJogosOrdenadosPorGenero() {
         return listarComMensagem(jogoService.listarJogosOrdenadosPorGenero(), "Jogos ordenados por gênero.", "Nenhum jogo encontrado.");
     }
 
     @GET
     @Path("/ordenar-por-ano")
-    public Response listarJogosOrdenadosPorAno() {
+    public Response ordernarJogosOrdenadosPorAno() {
         return listarComMensagem(jogoService.listarJogosOrdenadosPorAno(), "Jogos ordenados por ano.", "Nenhum jogo encontrado.");
     }
 
     @GET
     @Path("/ordenar-por-horas-jogadas")
-    public Response listarJogosOrdenadosPorHorasJogadas() {
+    public Response ordernarJogosOrdenadosPorHorasJogadas() {
         return listarComMensagem(jogoService.listarJogosOrdenadosPorHorasJogadas(), "Jogos ordenados por horas jogadas.", "Nenhum jogo encontrado.");
     }
 
