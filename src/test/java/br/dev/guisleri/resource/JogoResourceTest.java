@@ -286,6 +286,27 @@ class JogoResourceTest {
     }
 
     @Test
+    void deveRemoverTodosOsJogosComSucesso() {
+        given()
+                .queryParam("confirmar", true)  // nome e valor separados
+                .when()
+                .delete("/jogos")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Todos os jogos removidos com sucesso."))
+                .body("dados", nullValue());
+    }
+
+    @Test
+    void naoDeveRemoverTodosOsJogosSemConfirmacao() {
+        given()
+                .when()
+                .delete("/jogos")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void naoDeveRemoverJogoInexistente() {
         given()
                 .when()
@@ -479,6 +500,107 @@ class JogoResourceTest {
                 .statusCode(200)
                 .body("mensagem", equalTo("Nenhum jogo encontrado nesse ano."))
                 .body("dados", nullValue());
+    }
+
+    @Test
+    void deveListarJogosComMaisDeXHorasComSucesso() {
+        criarJogo("Forza Horizon 6", "RPG", 2026, 8, false);
+        criarJogo("Forza Horizon 5", "RPG", 2026, 10, false);
+        criarJogo("Forza Horizon 4", "CORRIDA", 2026, 20, false);
+        criarJogo("Forza Horizon 3", "CORRIDA", 2026, 30, false);
+
+        given()
+                .when()
+                .get("/jogos/horas-jogadas-mais/10")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos com ou mais de 10 horas jogadas listados com sucesso."))
+                .body("dados", hasSize(3));
+    }
+
+    @Test
+    void deveListarJogosComMenosDeXHorasComSucesso() {
+        criarJogo("Forza Horizon 6", "RPG", 2026, 8, false);
+        criarJogo("Forza Horizon 5", "RPG", 2026, 10, false);
+        criarJogo("Forza Horizon 4", "CORRIDA", 2026, 20, false);
+        criarJogo("Forza Horizon 3", "CORRIDA", 2026, 30, false);
+
+        given()
+                .when()
+                .get("/jogos/horas-jogadas-menos/10")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos com menos de 10 horas jogadas listados com sucesso."))
+                .body("dados", hasSize(2));
+    }
+
+    // TESTES DE ORDENAÇÃO
+
+    @Test
+    void deveListarJogosOrdenadosPorTituloComSucesso() {
+        criarJogo("Forza Horizon 5", "RPG", 2026, 10, false);
+        criarJogo("Forza Horizon 6", "RPG", 2026, 8, false);
+        criarJogo("Forza Horizon 3", "CORRIDA", 2026, 30, false);
+        criarJogo("Forza Horizon 4", "CORRIDA", 2026, 20, false);
+
+        given()
+                .when()
+                .get("/jogos/ordenar-por-titulo")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos ordenados por título."))
+                .body("dados.titulo", contains("Forza Horizon 3", "Forza Horizon 4", "Forza Horizon 5", "Forza Horizon 6"));
+    }
+
+    @Test
+    void deveListarJogosOrdenadosPorGeneroComSucesso() {
+        criarJogo("Forza Horizon 5", "RPG", 2026, 10, false);
+        criarJogo("Forza Horizon 6", "RPG", 2026, 8, false);
+        criarJogo("Forza Horizon 3", "CORRIDA", 2026, 30, false);
+        criarJogo("Forza Horizon 4", "CORRIDA", 2026, 20, false);
+        criarJogo("Forza Horizon 7", "FPS", 2026, 10, false);
+        criarJogo("Forza Horizon 8", "FPS", 2026, 15, false);
+
+        given()
+                .when()
+                .get("/jogos/ordenar-por-genero")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos ordenados por gênero."))
+                .body("dados.genero", contains("CORRIDA", "CORRIDA", "FPS", "FPS", "RPG", "RPG"));
+
+    }
+
+    @Test
+    void deveListarJogosOrdenadosPorAnoComSucesso() {
+        criarJogo("Forza Horizon 5", "RPG", 2026, 10, false);
+        criarJogo("Forza Horizon 6", "RPG", 2024, 8, false);
+        criarJogo("Forza Horizon 3", "CORRIDA", 2022, 30, false);
+        criarJogo("Forza Horizon 4", "CORRIDA", 2020, 20, false);
+
+        given()
+                .when()
+                .get("/jogos/ordenar-por-ano")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos ordenados por ano."))
+                .body("dados.anoLancamento", contains(2020, 2022, 2024, 2026));
+    }
+
+    @Test
+    void deveListarJogosOrdenadosPorHorasJogadasComSucesso() {
+        criarJogo("Forza Horizon 5", "RPG", 2026, 10, false);
+        criarJogo("Forza Horizon 6", "RPG", 2024, 8, false);
+        criarJogo("Forza Horizon 3", "CORRIDA", 2022, 30, false);
+        criarJogo("Forza Horizon 4", "CORRIDA", 2020, 20, false);
+
+        given()
+                .when()
+                .get("/jogos/ordenar-por-horas-jogadas")
+                .then()
+                .statusCode(200)
+                .body("mensagem", equalTo("Jogos ordenados por horas jogadas."))
+                .body("dados.quantHorasJogadas", contains(8, 10, 20, 30));
     }
 
 }

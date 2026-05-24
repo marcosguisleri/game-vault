@@ -48,6 +48,11 @@ public class JogoService {
     }
 
     @Transactional
+    public void removerTodosJogos() {
+        Jogo.deleteAll();
+    }
+
+    @Transactional
     public Jogo zerarJogo(Long id) {
         Jogo jogo = buscarJogoPorId(id);
 

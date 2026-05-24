@@ -47,6 +47,17 @@ public class JogoResource {
         return Response.ok(RespostaApiDTO.semDados("Jogo removido com sucesso.")).build();
     }
 
+    @DELETE
+    public Response removerTodosJogos(@QueryParam("confirmar") boolean confirmar) {
+        if (!confirmar) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(RespostaApiDTO.semDados("Envie ?confirmar=true para confirmar a operação."))
+                    .build();
+        }
+        jogoService.removerTodosJogos();
+        return Response.ok(RespostaApiDTO.semDados("Todos os jogos removidos com sucesso.")).build();
+    }
+
     @PATCH
     @Path("/{id}/zerar")
     public Response zerarJogo(@PathParam("id") Long id) {
@@ -78,9 +89,11 @@ public class JogoResource {
 
     // Listagens
     private Response listarComMensagem(List<Jogo> jogos, String msgSucesso, String msgVazia) {
+        if (jogos.isEmpty()) {
+            return Response.ok(RespostaApiDTO.semDados(msgVazia)).build();
+        }
         List<JogoResponseDTO> dtos = jogos.stream().map(JogoResponseDTO::from).toList();
-        String mensagem = jogos.isEmpty() ? msgVazia : msgSucesso;
-        return Response.ok(RespostaApiDTO.comDados(mensagem, dtos)).build();
+        return Response.ok(RespostaApiDTO.comDados(msgSucesso, dtos)).build();
     }
 
     @GET
@@ -126,7 +139,7 @@ public class JogoResource {
     @GET
     @Path("/horas-jogadas-mais/{horas}")
     public Response listarJogosPorHorasJogadasMais(@PathParam("horas") int horas) {
-        return listarComMensagem(jogoService.listarJogosPorHorasJogadasMais(horas), "Jogos com mais de " + horas + " horas jogadas listados com sucesso.", "Nenhum jogo encontrado com mais de " + horas + " horas jogadas.");
+        return listarComMensagem(jogoService.listarJogosPorHorasJogadasMais(horas), "Jogos com ou mais de " + horas + " horas jogadas listados com sucesso.", "Nenhum jogo encontrado com mais de " + horas + " horas jogadas.");
     }
 
     @GET
