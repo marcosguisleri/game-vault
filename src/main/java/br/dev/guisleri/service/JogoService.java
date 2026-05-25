@@ -1,6 +1,7 @@
 package br.dev.guisleri.service;
 
 import br.dev.guisleri.dto.CadastroLoteResponseDTO;
+import br.dev.guisleri.dto.JogoLoteItemDTO;
 import br.dev.guisleri.dto.JogoRequestDTO;
 import br.dev.guisleri.dto.ResultadoItemLoteDTO;
 import br.dev.guisleri.exception.JogoJaCadastradoException;
@@ -33,11 +34,13 @@ public class JogoService {
     }
 
     @Transactional
-    public CadastroLoteResponseDTO adicionarJogosEmLote(List<JogoRequestDTO> dtos) {
+    public CadastroLoteResponseDTO adicionarJogosEmLote(List<JogoLoteItemDTO> dtos) {
         List<ResultadoItemLoteDTO> resultados = new ArrayList<>();
 
-        for (JogoRequestDTO dto : dtos) {
+        for (JogoLoteItemDTO dto : dtos) {
             try {
+                Genero genero = Genero.valueOf(dto.genero().toUpperCase());
+
                 boolean jaExiste = Jogo.find("LOWER(titulo) = LOWER(?1)", dto.titulo())
                         .firstResultOptional()
                         .isPresent();
@@ -46,11 +49,14 @@ public class JogoService {
                     throw new JogoJaCadastradoException("Já existe um jogo cadastrado com esse título.");
                 }
 
-                Jogo jogo = new Jogo(dto.titulo(), dto.genero(), dto.anoLancamento(), dto.quantHorasJogadas(), dto.zerado());
+                Jogo jogo = new Jogo(dto.titulo(), genero, dto.anoLancamento(), dto.quantHorasJogadas(), dto.zerado());
                 jogo.persist();
 
                 resultados.add(new ResultadoItemLoteDTO(dto.titulo(), true, "Cadastrado com sucesso."));
 
+            } catch (IllegalArgumentException e) {
+                resultados.add(new ResultadoItemLoteDTO(dto.titulo(), false,
+                        "Gênero inválido: " + dto.genero()));
             } catch (JogoJaCadastradoException e) {
                 resultados.add(new ResultadoItemLoteDTO(dto.titulo(), false, e.getMessage()));
             }
