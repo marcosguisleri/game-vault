@@ -1,9 +1,6 @@
 package br.dev.guisleri.resource;
 
-import br.dev.guisleri.dto.AdicionarHorasDTO;
-import br.dev.guisleri.dto.JogoRequestDTO;
-import br.dev.guisleri.dto.JogoResponseDTO;
-import br.dev.guisleri.dto.RespostaApiDTO;
+import br.dev.guisleri.dto.*;
 import br.dev.guisleri.model.Genero;
 import br.dev.guisleri.model.Jogo;
 import br.dev.guisleri.service.JogoService;
@@ -29,6 +26,15 @@ public class JogoResource {
         jogoService.adicionarJogo(jogo);
         return Response.status(Response.Status.CREATED)
                 .entity(RespostaApiDTO.comDados("Jogo cadastrado com sucesso!", JogoResponseDTO.from(jogo)))
+                .build();
+    }
+
+    @POST
+    @Path("/lote")
+    public Response adicionarJogosEmLote(List<JogoRequestDTO> dtos) {
+        CadastroLoteResponseDTO resultado = jogoService.adicionarJogosEmLote(dtos);
+        return Response.status(207)
+                .entity(RespostaApiDTO.comDados("Processamento em lote concluído.", resultado))
                 .build();
     }
 

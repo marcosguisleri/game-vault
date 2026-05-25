@@ -1,5 +1,8 @@
 package br.dev.guisleri.service;
 
+import br.dev.guisleri.dto.CadastroLoteResponseDTO;
+import br.dev.guisleri.dto.JogoRequestDTO;
+import br.dev.guisleri.dto.ResultadoItemLoteDTO;
 import br.dev.guisleri.exception.JogoJaCadastradoException;
 import br.dev.guisleri.exception.JogoJaZeradoException;
 import br.dev.guisleri.exception.JogoNaoEncontradoException;
@@ -9,6 +12,7 @@ import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @ApplicationScoped
@@ -26,6 +30,33 @@ public class JogoService {
         }
 
         jogo.persist();
+    }
+
+    @Transactional
+    public CadastroLoteResponseDTO adicionarJogosEmLote(List<JogoRequestDTO> dtos) {
+        List<ResultadoItemLoteDTO> resultados = new ArrayList<>();
+
+        for (JogoRequestDTO dto : dtos) {
+            try {
+                boolean jaExiste = Jogo.find("LOWER(titulo) = LOWER(?1)", dto.titulo())
+                        .firstResultOptional()
+                        .isPresent();
+
+                if (jaExiste) {
+                    throw new JogoJaCadastradoException("Já existe um jogo cadastrado com esse título.");
+                }
+
+                Jogo jogo = new Jogo(dto.titulo(), dto.genero(), dto.anoLancamento(), dto.quantHorasJogadas(), dto.zerado());
+                jogo.persist();
+
+                resultados.add(new ResultadoItemLoteDTO(dto.titulo(), true, "Cadastrado com sucesso."));
+
+            } catch (JogoJaCadastradoException e) {
+                resultados.add(new ResultadoItemLoteDTO(dto.titulo(), false, e.getMessage()));
+            }
+        }
+
+        return CadastroLoteResponseDTO.from(resultados);
     }
 
     @Transactional

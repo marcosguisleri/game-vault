@@ -603,4 +603,84 @@ class JogoResourceTest {
                 .body("dados.quantHorasJogadas", contains(8, 10, 20, 30));
     }
 
+    // TESTES DE CADASTRO EM LOTE
+
+    @Test
+    void deveCadastrarTodosOsJogosDoLoteComSucesso() {
+        String json = """
+            [
+                { "titulo": "God of War", "genero": "ACAO", "anoLancamento": 2018, "quantHorasJogadas": 40, "zerado": true },
+                { "titulo": "Hollow Knight", "genero": "PLATAFORMA", "anoLancamento": 2017, "quantHorasJogadas": 30, "zerado": false }
+            ]
+            """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(json)
+                .when()
+                .post("/jogos/lote")
+                .then()
+                .statusCode(207)
+                .body("mensagem", equalTo("Processamento em lote concluído."))
+                .body("dados.total", equalTo(2))
+                .body("dados.cadastrados", equalTo(2))
+                .body("dados.falhas", equalTo(0))
+                .body("dados.resultados[0].sucesso", equalTo(true))
+                .body("dados.resultados[1].sucesso", equalTo(true));
+    }
+
+    @Test
+    void deveCadastrarLoteComSucessosEFalhasMisturados() {
+        criarJogo("God of War", "ACAO", 2018, 40, true); // já existe
+
+        String json = """
+            [
+                { "titulo": "God of War", "genero": "ACAO", "anoLancamento": 2018, "quantHorasJogadas": 40, "zerado": true },
+                { "titulo": "Hollow Knight", "genero": "PLATAFORMA", "anoLancamento": 2017, "quantHorasJogadas": 30, "zerado": false }
+            ]
+            """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(json)
+                .when()
+                .post("/jogos/lote")
+                .then()
+                .statusCode(207)
+                .body("dados.total", equalTo(2))
+                .body("dados.cadastrados", equalTo(1))
+                .body("dados.falhas", equalTo(1))
+                .body("dados.resultados[0].titulo", equalTo("God of War"))
+                .body("dados.resultados[0].sucesso", equalTo(false))
+                .body("dados.resultados[0].mensagem", equalTo("Já existe um jogo cadastrado com esse título."))
+                .body("dados.resultados[1].titulo", equalTo("Hollow Knight"))
+                .body("dados.resultados[1].sucesso", equalTo(true));
+    }
+
+    @Test
+    void deveFalharTodosOsItensQuandoTodosJaExistem() {
+        criarJogo("God of War", "ACAO", 2018, 40, true);
+        criarJogo("Hollow Knight", "PLATAFORMA", 2017, 30, false);
+
+        String json = """
+            [
+                { "titulo": "God of War", "genero": "ACAO", "anoLancamento": 2018, "quantHorasJogadas": 40, "zerado": true },
+                { "titulo": "Hollow Knight", "genero": "PLATAFORMA", "anoLancamento": 2017, "quantHorasJogadas": 30, "zerado": false }
+            ]
+            """;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(json)
+                .when()
+                .post("/jogos/lote")
+                .then()
+                .statusCode(207)
+                .body("dados.total", equalTo(2))
+                .body("dados.cadastrados", equalTo(0))
+                .body("dados.falhas", equalTo(2))
+                .body("dados.resultados[0].sucesso", equalTo(false))
+                .body("dados.resultados[1].sucesso", equalTo(false));
+    }
+
 }
